@@ -60,11 +60,18 @@ Base URL: `http://localhost:3001/api/v1`
 
 ## What "completed" means in my game
 
-A player completed the game when they answered every question in the question set.
+A player completed the game when they answered every question in the question set. A game is finished when its status is `completed` and `ended_at` is filled in.
 
 ## Tables
 
-[List your tables, one line each, in the order of your migrations.]
+| Table | What it stores |
+|---|---|
+| users | Accounts of hosts and players (school_id, full_name, email, password_hash, role of host or player) |
+| question_sets | A quiz made by a host (host_id, title, description) |
+| questions | Multiple-choice questions in a set (question_text, choice_a to choice_d, correct_choice A to D, points) |
+| game_sessions | One play of a question set (join_code, status of waiting, active or completed, started_at, ended_at) |
+| players | A user's seat in one game (session_id, user_id, nickname, score, joined_at) |
+| answers | One player's answer to one question (player_id, question_id, submitted_choice, is_correct, points_awarded) |
 
 ## Database scripts
 
