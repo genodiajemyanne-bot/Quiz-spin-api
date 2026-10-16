@@ -1,6 +1,6 @@
-# [Your Game Title] API
+# Quiz spin API
 
-Backend API for Quiz Spin, a tournament game for the SorSU Bulan Campus library.
+Backend API for Quiz spin, a tournament game for the SorSU Bulan Campus library.
 CS 313 Software Engineering 1, A.Y. 2026-2027.
 
 - Developer: Jemy Anne Genodia (genodiajemyanne-bot), BSCS 3-1 
