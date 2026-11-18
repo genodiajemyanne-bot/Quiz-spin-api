@@ -1,3 +1,5 @@
+// A database rule was broken -> what the client should hear.
+// The key is the constraint name from the database.
 module.exports = {
   uq_player_nickname: {
     status: 409,
