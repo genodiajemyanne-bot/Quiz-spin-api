@@ -1,29 +1,35 @@
+const { matchedData } = require('express-validator');
 const sessionService = require('../services/session.service');
 
-async function create(req, res, next) {
-  try {
-    const session = await sessionService.create(req.body.question_set_id, req.user);
-    res.status(201).json(session);
-  } catch (error) {
-    next(error);
-  }
+// What a client is allowed to see of a game.
+function toJson(session) {
+  return {
+    code: session.join_code,
+    status: session.status,
+    question_set_id: session.question_set_id,
+    created_at: session.created_at,
+    started_at: session.started_at,
+    ended_at: session.ended_at,
+  };
 }
 
-async function get(req, res, next) {
-  try {
-    res.json(await sessionService.findOrFail(req.params.code));
-  } catch (error) {
-    next(error);
-  }
+async function create(req, res) {
+  const { question_set_id } = matchedData(req, { locations: ['body'] });
+  const session = await sessionService.create(question_set_id, req.user);
+  res.status(201).json(toJson(session));
 }
 
-async function changeStatus(req, res, next) {
-  try {
-    const session = await sessionService.changeStatus(req.params.code, req.body.status, req.user);
-    res.json(session);
-  } catch (error) {
-    next(error);
-  }
+async function get(req, res) {
+  const { code } = matchedData(req);
+  const session = await sessionService.findOrFail(code);
+  res.status(200).json(toJson(session));
+}
+
+async function changeStatus(req, res) {
+  const { code } = matchedData(req, { locations: ['params'] });
+  const { status } = matchedData(req, { locations: ['body'] });
+  const session = await sessionService.changeStatus(code, status, req.user);
+  res.status(200).json(toJson(session));
 }
 
 module.exports = { create, get, changeStatus };

@@ -1,4 +1,3 @@
-// Maps a verb and URL to guards, rules and one controller. No logic here.
 const { Router } = require('express');
 const sessionController = require('../controllers/session.controller');
 const playerController = require('../controllers/player.controller');
@@ -8,13 +7,12 @@ const requireUser = require('../middlewares/require-user');
 
 const router = Router();
 
-// Hosts run the game.
-router.post('/', requireUser('HOST'), rules.createRules, validate, sessionController.create);
-router.patch('/:code/status', requireUser('HOST'), rules.statusRules, validate, sessionController.changeStatus);
+router.post('/', requireUser('HOST', 'ADMIN'), rules.createRules, validate, sessionController.create);
+router.get('/:code', rules.codeParam, validate, sessionController.get);
+router.patch('/:code', requireUser('HOST', 'ADMIN'), rules.statusRules, validate, sessionController.changeStatus);
 
-// Players join and look around.
-router.get('/:code', requireUser(), rules.codeRules, validate, sessionController.get);
+// Players are a part of a session, so their URLs sit under it.
 router.post('/:code/players', requireUser(), rules.joinRules, validate, playerController.join);
-router.get('/:code/players', requireUser(), rules.codeRules, validate, playerController.list);
+router.get('/:code/players', rules.codeParam, validate, playerController.list);
 
 module.exports = router;

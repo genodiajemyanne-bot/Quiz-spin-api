@@ -1,25 +1,27 @@
+const { matchedData } = require('express-validator');
 const playerService = require('../services/player.service');
 
-// 201 for a new seat, 200 for a rejoin (same row, same score).
-async function join(req, res, next) {
-  try {
-    const { session, player, created } = await playerService.join(
-      req.params.code,
-      req.body.nickname,
-      req.user
-    );
-    res.status(created ? 201 : 200).json({ session, player });
-  } catch (error) {
-    next(error);
-  }
+async function join(req, res) {
+  const { code, nickname } = matchedData(req);
+  const { session, player, created } = await playerService.join(code, nickname, req.user);
+
+  // 201 Created for a new seat, 200 OK when the account already had one (rejoin).
+  res.status(created ? 201 : 200).json({
+    player_id: player.player_id,
+    nickname: player.nickname,
+    score: player.score,
+    rejoined: !created,
+    session: { code: session.join_code, status: session.status },
+  });
 }
 
-async function list(req, res, next) {
-  try {
-    res.json(await playerService.list(req.params.code));
-  } catch (error) {
-    next(error);
-  }
+// Nicknames and scores only. Never a school ID, full name or email.
+async function list(req, res) {
+  const { code } = matchedData(req);
+  const players = await playerService.list(code);
+  res.status(200).json(
+    players.map((p) => ({ player_id: p.player_id, nickname: p.nickname, score: p.score }))
+  );
 }
 
 module.exports = { join, list };
