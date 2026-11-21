@@ -11,11 +11,15 @@ const sequelize = new Sequelize(
   dbConfig
 );
 
-// Week 11: load your models here, one line each, then add their associations.
-// Example:
-//   const User = require('./user')(sequelize, DataTypes);
-//   const Player = require('./player')(sequelize, DataTypes);
-//   User.hasMany(Player, { foreignKey: 'user_id' });
-//   Player.belongsTo(User, { foreignKey: 'user_id' });
+const User = require('./user')(sequelize, DataTypes);
+const QuestionSet = require('./question-set')(sequelize, DataTypes);
+const GameSession = require('./game-session')(sequelize, DataTypes);
+const Player = require('./player')(sequelize, DataTypes);
 
-module.exports = { sequelize, Sequelize, DataTypes };
+// Associations = the relationship lines of the ERD, read in both directions.
+User.hasMany(QuestionSet, { foreignKey: 'host_id' });
+QuestionSet.belongsTo(User, { foreignKey: 'host_id', as: 'host' });
+GameSession.hasMany(Player, { foreignKey: 'session_id' });
+Player.belongsTo(GameSession, { foreignKey: 'session_id' });
+
+module.exports = { sequelize, Sequelize, DataTypes, User, QuestionSet, GameSession, Player };

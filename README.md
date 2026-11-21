@@ -16,6 +16,8 @@ This is my own build of my group's game concept. Every commit in this repository
 | Web framework | Express 5 |
 | Database | PostgreSQL 16 or newer |
 | ORM and migrations | Sequelize 6 with sequelize-cli |
+| Validation and logging | express-validator, morgan |
+| API testing | Postman |
 
 ## Setup
 
@@ -48,15 +50,66 @@ npm run dev
 | DB_PASSWORD | (your own) | Database password. Never commit this. |
 | HUB_API_KEY | dev-hub-key | Key the Library Game Hub sends to read results. The library gives the real one at deployment. |
 
-## Endpoints (Hub Contract v1.2)
+## Endpoints
 
 Base URL: `http://localhost:3001/api/v1`
+
+### Hub Contract v1.2
 
 | Method | Path | Purpose | Success |
 |---|---|---|---|
 | GET | /health | Is the API up and can it reach the database? | 200 (503 when the database is down) |
 | GET | /game-info | Slug, name, group, developer, description, player limits, version | 200 |
 | GET | /results | Finished games, every player, and the top 3. Needs the `X-Hub-Key` header. Optional `?since=` | 200 (401 without the key) |
+
+### Module 1: question sets (Week 11)
+
+Until login is built in Week 12, a caller says who they are with the `X-Demo-User` header, which holds the school ID of a seeded account. This is not security.
+
+| Method | Path | Purpose | Who may call it | Success |
+|---|---|---|---|---|
+| GET | /question-sets | List question sets | A host (own sets) or an admin (all sets) | 200 |
+| POST | /question-sets | Create a question set | A host or an admin | 201 |
+| GET | /question-sets/{id} | Read one question set | The owner or an admin | 200 |
+| PATCH | /question-sets/{id} | Change a question set | The owner or an admin | 200 |
+| DELETE | /question-sets/{id} | Delete a question set | The owner or an admin | 204 |
+
+### Module 2: sessions and joining (Week 11)
+
+A game is found by its six-digit join code, never by its id.
+
+| Method | Path | Purpose | Who may call it | Success |
+|---|---|---|---|---|
+| POST | /sessions | Start a game. The server makes the code. | The owner of the question set, or an admin | 201 |
+| GET | /sessions/{code} | Read one game | Anyone | 200 |
+| PATCH | /sessions/{code} | Change the status (waiting to active to completed) | The host of that game, or an admin | 200 |
+| POST | /sessions/{code}/players | Join a game, or rejoin it | Any known account | 201 (new seat), 200 (rejoin) |
+| GET | /sessions/{code}/players | List nicknames and scores | Anyone | 200 |
+
+### Error format
+
+Every failure answers in one shape:
+
+```
+{ "error": { "code": "NICKNAME_TAKEN", "message": "That nickname is already used in this game." } }
+```
+
+| Status | When |
+|---|---|
+| 400 | The request is malformed or breaks a validation rule |
+| 401 | No account was named in the request |
+| 403 | The account may not do this |
+| 404 | The row named in the URL does not exist |
+| 409 | The request clashes with the current state, for example a taken nickname |
+
+## Testing with Postman
+
+The collection is in `postman/QuizSpin-API-Week11.postman_collection.json`.
+
+1. Run `npm run db:reset`, then `npm run dev`.
+2. In Postman, import the collection file.
+3. Open the collection's Variables tab and check that `baseUrl` is `http://localhost:3001/api/v1`. The variables `host`, `otherHost` and `player` hold school IDs from the seed data.
+4. Click the three dots beside the collection, choose Run collection, then Run. Every test passes.
 
 ## What "completed" means in my game
 
